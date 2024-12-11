@@ -33,7 +33,7 @@ const Todolist = () => {
 
   return (
     <>
-      <ListGroup className="card m-2 mt-5">
+      <ListGroup className="card m-2 mt-5 pt-1">
         <h1 className="text-center">ToDoList</h1>
         <input
           placeholder="    What needs to be done?"
