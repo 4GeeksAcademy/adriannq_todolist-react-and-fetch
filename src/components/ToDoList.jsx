@@ -1,34 +1,48 @@
-import { useState } from "react";
-import { Badge, ListGroup } from "react-bootstrap";
-
-const list = [
-  {
-    task: "Pasear al perro",
-    id: crypto.randomUUID(),
-  },
-  {
-    task: "Hacer la compra",
-    id: crypto.randomUUID(),
-  },
-];
+import { useEffect, useState } from "react";
+import { Button, ListGroup } from "react-bootstrap";
 
 const Todolist = () => {
-  const [listValue, setListValue] = useState(list);
+  const [listValue, setListValue] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [hoveredItem, setHoveredItem] = useState(null);
 
-  const createLi = (listTask) => {
-    if (listTask.trim()) {
-      setListValue([...listValue, { task: listTask, id: crypto.randomUUID() }]);
-      setInputValue("");
-    }
+  const getTodoList = () => {
+    fetch("https://playground.4geeks.com/todo/users/AdrianNQ", {
+      method: "GET",
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        setListValue(response.todos);
+      });
   };
-  const removeLi = (id) => {
-    setListValue(
-      listValue.filter((element) => {
-        return element.id !== id;
+
+  useEffect(() => {
+    getTodoList();
+  }, []);
+
+  const addTask = () => {
+    if (inputValue.trim() === "") return;
+    fetch("https://playground.4geeks.com/todo/todos/AdrianNQ", {
+      method: "POST",
+      body: JSON.stringify({
+        label: inputValue,
+        is_done: false,
       }),
-    );
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then(() => {
+      getTodoList();
+      setInputValue("");
+    });
+  };
+
+  const deleteTask = (id) => {
+    fetch(`https://playground.4geeks.com/todo/todos/${id}`, {
+      method: "DELETE",
+    }).then(() => {
+      getTodoList();
+    });
   };
 
   return (
@@ -42,7 +56,7 @@ const Todolist = () => {
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              createLi(inputValue);
+              addTask(inputValue);
             }
           }}
         />
@@ -53,11 +67,16 @@ const Todolist = () => {
             onMouseOver={() => setHoveredItem(element.id)}
             onMouseOut={() => setHoveredItem(null)}
           >
-            <div className="ms-2 me-auto">{element.task}</div>
+            <div className="ms-2 me-auto">{element.label}</div>
             {hoveredItem === element.id ? (
-              <Badge bg="danger" pill onClick={() => removeLi(element.id)}>
+              <Button
+                variant="danger"
+                size="sm"
+                pill
+                onClick={() => deleteTask(element.id)}
+              >
                 X
-              </Badge>
+              </Button>
             ) : (
               ""
             )}
